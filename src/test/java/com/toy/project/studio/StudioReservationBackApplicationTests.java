@@ -1,4 +1,4 @@
-package com.toy.project.studioreservationback;
+package com.toy.project.studio;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

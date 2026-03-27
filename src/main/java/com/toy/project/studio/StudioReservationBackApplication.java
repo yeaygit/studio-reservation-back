@@ -1,4 +1,4 @@
-package com.toy.project.studioreservationback;
+package com.toy.project.studio;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
