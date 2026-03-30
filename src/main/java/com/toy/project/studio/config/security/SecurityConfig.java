@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 로그인/재발급/로그아웃은 access token 없이도 접근 가능해야 합니다.
-                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll()
+                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/v1/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions

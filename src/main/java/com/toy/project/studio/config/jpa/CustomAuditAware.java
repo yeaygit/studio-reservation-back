@@ -2,6 +2,7 @@ package com.toy.project.studio.config.jpa;
 
 import java.util.Optional;
 
+import com.toy.project.studio.config.jwt.JwtPrincipal;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,12 +42,16 @@ public class CustomAuditAware implements org.springframework.data.domain.Auditor
             return Optional.empty();
         }
 
-        // JWT 필터에서 만든 Authentication의 principal/name 값을 그대로 감사 작성자로 사용한다.
-        String username = authentication.getName();
-        if (!StringUtils.hasText(username)) {
-            return Optional.empty();
+        // JwtPrincipal에서 username만 꺼낸다
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof JwtPrincipal jwtPrincipal) {
+            String username = jwtPrincipal.username(); // record면 .username(), 클래스면 .getUsername()
+            return StringUtils.hasText(username) ? Optional.of(username) : Optional.empty();
         }
 
-        return Optional.of(username);
+        // fallback: principal이 String인 경우
+        String username = authentication.getName();
+        return StringUtils.hasText(username) ? Optional.of(username) : Optional.empty();
+
     }
 }

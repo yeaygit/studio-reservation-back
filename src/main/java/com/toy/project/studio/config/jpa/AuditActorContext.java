@@ -20,15 +20,6 @@ public final class AuditActorContext {
     private AuditActorContext() {
     }
 
-    public static void setCurrentActor(String actor) {
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        if (requestAttributes == null || !StringUtils.hasText(actor)) {
-            return;
-        }
-
-        // 현재 HTTP 요청 안에서만 살아있는 값이다.
-        requestAttributes.setAttribute(ATTRIBUTE_NAME, actor.trim(), RequestAttributes.SCOPE_REQUEST);
-    }
 
     public static Optional<String> getCurrentActor() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
@@ -44,13 +35,5 @@ public final class AuditActorContext {
         return Optional.empty();
     }
 
-    public static void clear() {
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        if (requestAttributes == null) {
-            return;
-        }
 
-        // 같은 요청에서 더 이상 이 이름을 쓰지 않도록 제거할 때 사용한다.
-        requestAttributes.removeAttribute(ATTRIBUTE_NAME, RequestAttributes.SCOPE_REQUEST);
-    }
 }
