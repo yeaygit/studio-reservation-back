@@ -1,4 +1,4 @@
-package com.toy.project.studio.auth.dto;
+package com.toy.project.studio.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,4 +1,4 @@
-package com.toy.project.studio.auth.dto;
+package com.toy.project.studio.auth.dto.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

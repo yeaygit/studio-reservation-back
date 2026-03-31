@@ -28,6 +28,7 @@ public class JwtFilter extends OncePerRequestFilter {
     // refresh token은 컨트롤러/서비스에서만 다루기 위해 여기서 제외합니다.
     private static final Set<String> AUTH_ENDPOINTS = Set.of(
             "/auth/login",
+            "/auth/session",
             "/auth/refresh",
             "/auth/logout"
     );
