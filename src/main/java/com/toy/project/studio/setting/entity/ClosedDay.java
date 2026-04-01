@@ -56,12 +56,6 @@ public class ClosedDay extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
-    public LocalDate resolveDate(int year) {
-        if (type == ClosedDayType.SPECIFIC) {
-            return specificDate;
-        }
-        return MonthDay.of(annualMonth, annualDay).atYear(year);
-    }
 
     public void deactivate() {
         this.isActive = false;
