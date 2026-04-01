@@ -1,6 +1,7 @@
 package com.toy.project.studio.setting.entity;
 
 import java.time.LocalDate;
+import java.time.MonthDay;
 
 import com.toy.project.studio.config.jpa.BaseEntity;
 import com.toy.project.studio.setting.enumeration.ClosedDayType;
@@ -54,4 +55,15 @@ public class ClosedDay extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private boolean isActive = true;
+
+    public LocalDate resolveDate(int year) {
+        if (type == ClosedDayType.SPECIFIC) {
+            return specificDate;
+        }
+        return MonthDay.of(annualMonth, annualDay).atYear(year);
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
 }

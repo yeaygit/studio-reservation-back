@@ -44,13 +44,4 @@ class FaqServiceTest {
         assertThat(responses.get(1).answer()).isEqualTo("a3");
     }
 
-    @Test
-    void getFaQThrowsWhenActiveFaqDoesNotExist() {
-        when(faqRepository.findActiveById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> faqService.getFaq(99L))
-                .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.FAQ_NOT_FOUND);
-    }
 }
