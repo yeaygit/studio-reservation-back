@@ -24,8 +24,4 @@ public class FaqController {
         return ResponseEntity.ok(faqService.getFaqs());
     }
 
-    @GetMapping("/{faqId}")
-    public ResponseEntity<FaqResponse> getFaq(@PathVariable Long faqId) {
-        return ResponseEntity.ok(faqService.getFaq(faqId));
-    }
 }

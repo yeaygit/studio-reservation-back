@@ -24,10 +24,4 @@ public class FaqService {
                 .map(FaqResponse::from)
                 .toList();
     }
-
-    public FaqResponse getFaq(Long faqId) {
-        return faqRepository.findActiveById(faqId)
-                .map(FaqResponse::from)
-                .orElseThrow(() -> new CustomException(ErrorCode.FAQ_NOT_FOUND));
-    }
 }

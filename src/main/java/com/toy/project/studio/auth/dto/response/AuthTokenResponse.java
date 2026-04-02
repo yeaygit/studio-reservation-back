@@ -1,4 +1,4 @@
-package com.toy.project.studio.auth.dto;
+package com.toy.project.studio.auth.dto.response;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
