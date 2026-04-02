@@ -34,6 +34,24 @@ public interface ClosedDayRepository extends JpaRepository<ClosedDay, Long> {
     @Query("""
             select c
             from ClosedDay c
+            where c.isActive = true
+              and (
+                    c.type = :annualType
+                 or (c.type = :specificType
+                     and c.specificDate >= :startDate
+                     and c.specificDate <= :endDate)
+              )
+            """)
+    List<ClosedDay> findAllActiveByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("specificType") ClosedDayType specificType,
+            @Param("annualType") ClosedDayType annualType
+    );
+
+    @Query("""
+            select c
+            from ClosedDay c
             where c.id = :closedDayId
               and c.isActive = true
             """)

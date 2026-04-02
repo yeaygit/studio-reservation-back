@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.toy.project.studio.setting.dto.request.ClosedDayCreateRequest;
+import com.toy.project.studio.setting.dto.request.ShootingTypeCreateRequest;
+import com.toy.project.studio.setting.dto.request.ShootingTypeUpdateRequest;
 import com.toy.project.studio.setting.dto.request.StudioSettingUpdateRequest;
 import com.toy.project.studio.setting.dto.response.ClosedDayResponse;
+import com.toy.project.studio.setting.dto.response.ShootingTypeResponse;
 import com.toy.project.studio.setting.dto.response.StudioSettingResponse;
+import com.toy.project.studio.setting.service.ShootingTypeAdminService;
 import com.toy.project.studio.setting.service.SettingAdminService;
 
 import jakarta.validation.Valid;
@@ -32,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class SettingAdminController {
 
     private final SettingAdminService settingAdminService;
+    private final ShootingTypeAdminService shootingTypeAdminService;
 
     @GetMapping("/studio")
     public ResponseEntity<StudioSettingResponse> getStudioSetting() {
@@ -61,6 +66,38 @@ public class SettingAdminController {
     @DeleteMapping("/closed-days/{closedDayId}")
     public ResponseEntity<Void> deleteClosedDay(@PathVariable Long closedDayId) {
         settingAdminService.deleteClosedDay(closedDayId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/shooting-types")
+    public ResponseEntity<ShootingTypeResponse> createShootingType(
+            @Valid @RequestBody ShootingTypeCreateRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(shootingTypeAdminService.createShootingType(request));
+    }
+
+    @GetMapping("/shooting-types")
+    public ResponseEntity<List<ShootingTypeResponse>> getShootingTypes() {
+        return ResponseEntity.ok(shootingTypeAdminService.getShootingTypes());
+    }
+
+    @GetMapping("/shooting-types/{shootingTypeId}")
+    public ResponseEntity<ShootingTypeResponse> getShootingType(@PathVariable Long shootingTypeId) {
+        return ResponseEntity.ok(shootingTypeAdminService.getShootingType(shootingTypeId));
+    }
+
+    @PatchMapping("/shooting-types/{shootingTypeId}")
+    public ResponseEntity<ShootingTypeResponse> updateShootingType(
+            @PathVariable Long shootingTypeId,
+            @Valid @RequestBody ShootingTypeUpdateRequest request
+    ) {
+        return ResponseEntity.ok(shootingTypeAdminService.updateShootingType(shootingTypeId, request));
+    }
+
+    @DeleteMapping("/shooting-types/{shootingTypeId}")
+    public ResponseEntity<Void> deleteShootingType(@PathVariable Long shootingTypeId) {
+        shootingTypeAdminService.deleteShootingType(shootingTypeId);
         return ResponseEntity.noContent().build();
     }
 }

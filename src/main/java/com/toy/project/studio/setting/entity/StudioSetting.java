@@ -21,7 +21,6 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "studio_setting")
 public class StudioSetting extends BaseEntity {
 
     @Id
