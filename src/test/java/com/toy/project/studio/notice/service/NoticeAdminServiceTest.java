@@ -44,8 +44,6 @@ class NoticeAdminServiceTest {
                 "  Notice title  ",
                 "  Notice content  ",
                 true,
-                true,
-                false,
                 LocalDate.of(2026, 4, 1),
                 LocalDate.of(2026, 4, 3)
         );
@@ -57,7 +55,6 @@ class NoticeAdminServiceTest {
                     .title(notice.getTitle())
                     .content(notice.getContent())
                     .isActive(notice.isActive())
-                    .isImportant(notice.isImportant())
                     .isPopup(notice.isPopup())
                     .popupStartDate(notice.getPopupStartDate())
                     .popupEndDate(notice.getPopupEndDate())
@@ -69,7 +66,6 @@ class NoticeAdminServiceTest {
         verify(noticeRepository).save(noticeCaptor.capture());
         assertThat(noticeCaptor.getValue().getTitle()).isEqualTo("Notice title");
         assertThat(noticeCaptor.getValue().getContent()).isEqualTo("Notice content");
-        assertThat(noticeCaptor.getValue().isImportant()).isTrue();
         assertThat(noticeCaptor.getValue().isPopup()).isFalse();
         assertThat(noticeCaptor.getValue().getPopupStartDate()).isNull();
         assertThat(noticeCaptor.getValue().getPopupEndDate()).isNull();
@@ -83,8 +79,6 @@ class NoticeAdminServiceTest {
         NoticeCreateRequest request = new NoticeCreateRequest(
                 "Notice title",
                 "content",
-                true,
-                false,
                 true,
                 null,
                 null
@@ -103,15 +97,12 @@ class NoticeAdminServiceTest {
                 .title("before")
                 .content("before content")
                 .isActive(true)
-                .isImportant(false)
                 .isPopup(false)
                 .build();
         NoticeUpdateRequest request = new NoticeUpdateRequest(
                 "  after  ",
                 "  after content  ",
                 false,
-                true,
-                true,
                 LocalDate.of(2026, 4, 1),
                 LocalDate.of(2026, 4, 10)
         );
@@ -123,7 +114,6 @@ class NoticeAdminServiceTest {
         assertThat(notice.getTitle()).isEqualTo("after");
         assertThat(notice.getContent()).isEqualTo("after content");
         assertThat(notice.isActive()).isFalse();
-        assertThat(notice.isImportant()).isTrue();
         assertThat(notice.isPopup()).isTrue();
         assertThat(notice.getPopupStartDate()).isEqualTo(LocalDate.of(2026, 4, 1));
         assertThat(notice.getPopupEndDate()).isEqualTo(LocalDate.of(2026, 4, 10));

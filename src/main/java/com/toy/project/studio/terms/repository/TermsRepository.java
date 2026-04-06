@@ -1,5 +1,6 @@
 package com.toy.project.studio.terms.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +25,20 @@ public interface TermsRepository extends JpaRepository<Terms, Long> {
               and t.isActive = true
             """)
     Optional<Terms> findActiveById(@Param("termsId") Long termsId);
+
+    @Query("""
+            select t.id
+            from Terms t
+            where t.id in :termsIds
+              and t.isActive = true
+            """)
+    List<Long> findActiveIdsByIdIn(@Param("termsIds") Collection<Long> termsIds);
+
+    @Query("""
+            select t.id
+            from Terms t
+            where t.isActive = true
+              and t.isRequired = true
+            """)
+    List<Long> findRequiredActiveIds();
 }

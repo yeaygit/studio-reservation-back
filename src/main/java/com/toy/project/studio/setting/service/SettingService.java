@@ -30,8 +30,16 @@ public class SettingService {
     private final StudioSettingRepository studioSettingRepository;
     private final ClosedDayRepository closedDayRepository;
 
-    public StudioSettingDetailResponse getStudioSetting() {
-        return StudioSettingDetailResponse.from(findStudioSetting());
+    public StudioSettingDetailResponse getStudioSetting(LocalDate startDate, LocalDate endDate) {
+        validateDateRange(startDate, endDate);
+        return StudioSettingDetailResponse.from(findStudioSetting(), startDate, endDate);
+    }
+
+    public StudioSettingDetailResponse getStudioSetting(LocalDate startDate) {
+        StudioSetting studioSetting = findStudioSetting();
+        LocalDate endDate = startDate.plusDays(studioSetting.getReservationOpenDays());
+        validateDateRange(startDate, endDate);
+        return StudioSettingDetailResponse.from(studioSetting, startDate, endDate);
     }
 
     public List<LocalDate> getClosedDays(LocalDate startDate, LocalDate endDate) {
@@ -48,6 +56,14 @@ public class SettingService {
                 .distinct()
                 .sorted(Comparator.naturalOrder())
                 .toList();
+    }
+
+    private StudioSetting findStudioSetting() {
+        return studioSettingRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "Studio setting not found."
+                ));
     }
 
     private List<LocalDate> resolveClosedDates(ClosedDay closedDay, LocalDate startDate, LocalDate endDate) {
@@ -82,13 +98,5 @@ public class SettingService {
         if (startDate.isAfter(endDate)) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "startDate must be on or before endDate.");
         }
-    }
-
-    private StudioSetting findStudioSetting() {
-        return studioSettingRepository.findFirstByOrderByIdAsc()
-                .orElseThrow(() -> new CustomException(
-                        ErrorCode.INTERNAL_SERVER_ERROR,
-                        "Studio setting not found."
-                ));
     }
 }
