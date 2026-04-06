@@ -26,18 +26,21 @@ public class SettingController {
     private final SettingService settingService;
     private final ShootingTypeService shootingTypeService;
 
-    @GetMapping("/studio")
-    public ResponseEntity<StudioSettingDetailResponse> getStudioSetting() {
-        return ResponseEntity.ok(settingService.getStudioSetting());
-    }
+//    @GetMapping("/studio")
+//    public ResponseEntity<StudioSettingDetailResponse> getStudioSetting(
+//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+//    ) {
+//        return ResponseEntity.ok(settingService.getStudioSetting(startDate, endDate));
+//    }
 
-    @GetMapping("/closed-days")
-    public ResponseEntity<List<LocalDate>> getClosedDays(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
-        return ResponseEntity.ok(settingService.getClosedDays(startDate, endDate));
-    }
+//    @GetMapping("/closed-days")
+//    public ResponseEntity<List<LocalDate>> getClosedDays(
+//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+//    ) {
+//        return ResponseEntity.ok(settingService.getClosedDays(startDate, endDate));
+//    }
 
     @GetMapping("/shooting-types")
     public ResponseEntity<List<ShootingTypeResponse>> getShootingTypes() {

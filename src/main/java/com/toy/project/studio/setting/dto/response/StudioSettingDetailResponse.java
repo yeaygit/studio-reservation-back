@@ -1,8 +1,10 @@
 package com.toy.project.studio.setting.dto.response;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.toy.project.studio.setting.entity.StudioSetting;
 
@@ -14,10 +16,14 @@ public record StudioSettingDetailResponse(
         LocalTime lunchEnd,
         Integer slotUnit,
         Integer reservationOpenDays,
-        List<String> closedDays
+        List<LocalDate> closedDays
 ) {
 
-    public static StudioSettingDetailResponse from(StudioSetting studioSetting) {
+    public static StudioSettingDetailResponse from(
+            StudioSetting studioSetting,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
         return new StudioSettingDetailResponse(
                 studioSetting.getId(),
                 studioSetting.getOpenTime(),
@@ -26,35 +32,29 @@ public record StudioSettingDetailResponse(
                 studioSetting.getLunchEnd(),
                 studioSetting.getSlotUnit(),
                 studioSetting.getReservationOpenDays(),
-                resolveClosedDays(studioSetting)
+                resolveClosedDays(studioSetting, startDate, endDate)
         );
     }
 
-    private static List<String> resolveClosedDays(StudioSetting studioSetting) {
-        List<String> closedDays = new ArrayList<>();
+    private static List<LocalDate> resolveClosedDays(
+            StudioSetting studioSetting,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        return Stream.iterate(startDate, date -> !date.isAfter(endDate), date -> date.plusDays(1))
+                .filter(date -> isClosedDay(studioSetting, date.getDayOfWeek()))
+                .toList();
+    }
 
-        if (studioSetting.isClosedMon()) {
-            closedDays.add("MON");
-        }
-        if (studioSetting.isClosedTue()) {
-            closedDays.add("TUE");
-        }
-        if (studioSetting.isClosedWed()) {
-            closedDays.add("WED");
-        }
-        if (studioSetting.isClosedThu()) {
-            closedDays.add("THU");
-        }
-        if (studioSetting.isClosedFri()) {
-            closedDays.add("FRI");
-        }
-        if (studioSetting.isClosedSat()) {
-            closedDays.add("SAT");
-        }
-        if (studioSetting.isClosedSun()) {
-            closedDays.add("SUN");
-        }
-
-        return closedDays;
+    private static boolean isClosedDay(StudioSetting studioSetting, DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> studioSetting.isClosedMon();
+            case TUESDAY -> studioSetting.isClosedTue();
+            case WEDNESDAY -> studioSetting.isClosedWed();
+            case THURSDAY -> studioSetting.isClosedThu();
+            case FRIDAY -> studioSetting.isClosedFri();
+            case SATURDAY -> studioSetting.isClosedSat();
+            case SUNDAY -> studioSetting.isClosedSun();
+        };
     }
 }

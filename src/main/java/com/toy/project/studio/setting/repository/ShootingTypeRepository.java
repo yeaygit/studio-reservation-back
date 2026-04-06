@@ -34,6 +34,14 @@ public interface ShootingTypeRepository extends JpaRepository<ShootingType, Long
     Optional<ShootingType> findActiveById(@Param("shootingTypeId") Long shootingTypeId);
 
     @Query("""
+            select s
+            from ShootingType s
+            where lower(s.code) = lower(:code)
+              and s.isActive = true
+            """)
+    Optional<ShootingType> findActiveByCode(@Param("code") String code);
+
+    @Query("""
             select case when count(s) > 0 then true else false end
             from ShootingType s
             where lower(s.code) = lower(:code)
