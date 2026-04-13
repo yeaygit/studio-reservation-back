@@ -1,16 +1,23 @@
 server:
-  port: ${PORT:8080}
   servlet:
     context-path: /api
 
 spring:
   application:
     name: studio-reservation-java
-
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/studio?currentSchema=studio
+    username: postgres
+    password: ENC(2DWoWA/rY77Xm580CHclBOeBFHYZ0zFJ8X9c1/Vjf6Wiyp6DiWMznAuu9bqHlTDl)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2s
   sql:
     init:
-      mode: never
-
+      mode: always
   jpa:
     hibernate:
       ddl-auto: none
@@ -24,19 +31,18 @@ spring:
 app:
   jwt:
     issuer: studio-reservation-back
-    secret: ${JWT_SECRET}
+    secret: ENC(CU9HCCa+v0pm3DKsbT4+xQP5/nMyUWC7xx4ocdwt18ZePps8j1Q5nlVxJsNPJ89bxQOI3bsTqRq46O7qrwTODXBxyZgmxeptzfvak2Y+b3U=)
     access-token-expiration: 30m
     refresh-token-expiration: 14d
-
   auth:
     refresh-cookie:
       secure: true
-      same-site: None
+      same-site: Strict
       path: ${server.servlet.context-path:}/auth
 
 jasypt:
   encryptor:
-    password: ${JASYPT_ENCRYPTOR_PASSWORD}
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:yulim-toy-project}
 
 logging:
   level:
