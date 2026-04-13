@@ -1,9 +1,4 @@
 spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}?currentSchema=studio
-    username: ${PGUSER}
-    password: ${PGPASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
