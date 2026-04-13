@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}?currentSchema=studio
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
+
+  data:
+    redis:
+      host: ${AIVEN_REDIS_HOST}
+      port: ${AIVEN_REDIS_PORT}
+      username: ${AIVEN_REDIS_USERNAME}
+      password: ${AIVEN_REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 2s
