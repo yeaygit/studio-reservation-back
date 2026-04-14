@@ -1,0 +1,25 @@
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/studio?currentSchema=studio
+    username: postgres
+    password: ENC(2DWoWA/rY77Xm580CHclBOeBFHYZ0zFJ8X9c1/Vjf6Wiyp6DiWMznAuu9bqHlTDl)
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2s
+
+  sql:
+    init:
+      mode: always
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+server:
+  servlet:
+    context-path: /api
