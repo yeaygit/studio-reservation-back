@@ -45,7 +45,8 @@ public class ReservationService {
 
         return ReservationSettingResponse.from(
                 studioSetting,
-                settingService.getClosedDays(startDate, endDate)
+                settingService.getClosedDays(startDate, endDate),
+                List.of()
         );
     }
 

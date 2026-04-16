@@ -20,6 +20,7 @@ public record ReservationSettingResponse(
 
     public static ReservationSettingResponse from(
             StudioSettingDetailResponse studioSetting,
+            List<LocalDate> closedDays,
             List<LocalDate> blockedDays
     ) {
         return new ReservationSettingResponse(
@@ -30,7 +31,7 @@ public record ReservationSettingResponse(
                 toMinutes(studioSetting.lunchEnd()),
                 studioSetting.slotUnit(),
                 studioSetting.reservationOpenDays(),
-                List.copyOf(studioSetting.closedDays()),
+                List.copyOf(closedDays),
                 List.copyOf(blockedDays)
         );
     }
