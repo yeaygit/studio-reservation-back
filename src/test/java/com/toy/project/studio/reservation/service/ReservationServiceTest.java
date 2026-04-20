@@ -2,6 +2,11 @@ package com.toy.project.studio.reservation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
@@ -19,14 +24,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.toy.project.studio.reservation.dto.request.ReservationCreateRequest;
 import com.toy.project.studio.reservation.dto.response.ReservationCreateResponse;
-import com.toy.project.studio.reservation.dto.response.ReservedTimeResponse;
 import com.toy.project.studio.reservation.dto.response.ReservationSettingResponse;
+import com.toy.project.studio.reservation.dto.response.ReservedTimeResponse;
 import com.toy.project.studio.reservation.entity.Reservation;
+import com.toy.project.studio.reservation.enumeration.VisitPath;
 import com.toy.project.studio.reservation.repository.ReservationRepository;
 import com.toy.project.studio.reservation.repository.ReservedTimeProjection;
+import com.toy.project.studio.setting.dto.response.StudioSettingDetailResponse;
 import com.toy.project.studio.setting.entity.ShootingType;
 import com.toy.project.studio.setting.repository.ShootingTypeRepository;
-import com.toy.project.studio.setting.dto.response.StudioSettingDetailResponse;
 import com.toy.project.studio.setting.service.SettingService;
 import com.toy.project.studio.terms.repository.TermsRepository;
 import com.toy.project.studio.util.exception.CustomException;
@@ -47,6 +53,12 @@ class ReservationServiceTest {
     @Mock
     private TermsRepository termsRepository;
 
+    @Mock
+    private ReservationCreationLockManager reservationCreationLockManager;
+
+    @Mock
+    private ReservationCreationLockManager.ReservationLock reservationLock;
+
     private ReservationService reservationService;
 
     @BeforeEach
@@ -60,8 +72,10 @@ class ReservationServiceTest {
                 reservationRepository,
                 shootingTypeRepository,
                 termsRepository,
+                reservationCreationLockManager,
                 fixedClock
         );
+        when(reservationCreationLockManager.acquire(any(LocalDate.class))).thenReturn(reservationLock);
     }
 
     @Test
@@ -147,9 +161,9 @@ class ReservationServiceTest {
                 1,
                 LocalTime.of(19, 30),
                 LocalTime.of(20, 0),
-                " 김유림 ",
+                " hong ",
                 " 010-6614-9926 ",
-                " naver ",
+                VisitPath.naver,
                 " ",
                 List.of(1L, 2L)
         );
@@ -165,7 +179,13 @@ class ReservationServiceTest {
         when(shootingTypeRepository.findActiveByCode("id")).thenReturn(java.util.Optional.of(shootingType));
         when(termsRepository.findActiveIdsByIdIn(List.of(1L, 2L))).thenReturn(List.of(1L, 2L));
         when(termsRepository.findRequiredActiveIds()).thenReturn(List.of(1L, 2L));
-        when(reservationRepository.save(org.mockito.ArgumentMatchers.any(Reservation.class))).thenAnswer(invocation -> {
+        when(reservationRepository.existsOverlappingReservation(
+                eq(request.date()),
+                eq(request.startTime()),
+                eq(request.endTime()),
+                anySet()
+        )).thenReturn(false);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> {
             Reservation reservation = invocation.getArgument(0, Reservation.class);
             return Reservation.builder()
                     .id(1L)
@@ -184,6 +204,7 @@ class ReservationServiceTest {
         ReservationCreateResponse response = reservationService.createReservation(request);
 
         assertThat(response.reservationId()).isEqualTo(1L);
+        verify(reservationLock).close();
     }
 
     @Test
@@ -194,9 +215,9 @@ class ReservationServiceTest {
                 1,
                 LocalTime.of(19, 30),
                 LocalTime.of(20, 0),
-                "김유림",
+                "hong",
                 "010-6614-9926",
-                "naver",
+                VisitPath.naver,
                 "",
                 List.of(1L)
         );
@@ -208,6 +229,95 @@ class ReservationServiceTest {
                 .isInstanceOf(CustomException.class)
                 .extracting(exception -> ((CustomException) exception).getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @Test
+    void createReservationThrowsWhenReservationTimeOverlaps() {
+        ReservationCreateRequest request = new ReservationCreateRequest(
+                "id",
+                LocalDate.of(2026, 4, 10),
+                1,
+                LocalTime.of(19, 30),
+                LocalTime.of(20, 0),
+                "source",
+                "010-6614-9926",
+                VisitPath.naver,
+                null,
+                List.of(1L, 2L)
+        );
+
+        ShootingType shootingType = ShootingType.builder()
+                .id(10L)
+                .code("id")
+                .label("ID")
+                .duration(30L)
+                .price(10000L)
+                .build();
+
+        when(shootingTypeRepository.findActiveByCode("id")).thenReturn(java.util.Optional.of(shootingType));
+        when(termsRepository.findActiveIdsByIdIn(List.of(1L, 2L))).thenReturn(List.of(1L, 2L));
+        when(termsRepository.findRequiredActiveIds()).thenReturn(List.of(1L, 2L));
+        when(reservationRepository.existsOverlappingReservation(
+                eq(request.date()),
+                eq(request.startTime()),
+                eq(request.endTime()),
+                anySet()
+        )).thenReturn(true);
+
+        assertThatThrownBy(() -> reservationService.createReservation(request))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getErrorCode())
+                .isEqualTo(ErrorCode.RESERVATION_TIME_CONFLICT);
+
+        verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(reservationLock).close();
+    }
+
+    @Test
+    void createReservationThrowsWhenReservationDateIsAlreadyLocked() {
+        ReservationCreateRequest request = new ReservationCreateRequest(
+                "id",
+                LocalDate.of(2026, 4, 10),
+                1,
+                LocalTime.of(19, 30),
+                LocalTime.of(20, 0),
+                "source",
+                "010-6614-9926",
+                VisitPath.naver,
+                null,
+                List.of(1L, 2L)
+        );
+
+        ShootingType shootingType = ShootingType.builder()
+                .id(10L)
+                .code("id")
+                .label("ID")
+                .duration(30L)
+                .price(10000L)
+                .build();
+
+        when(shootingTypeRepository.findActiveByCode("id")).thenReturn(java.util.Optional.of(shootingType));
+        when(termsRepository.findActiveIdsByIdIn(List.of(1L, 2L))).thenReturn(List.of(1L, 2L));
+        when(termsRepository.findRequiredActiveIds()).thenReturn(List.of(1L, 2L));
+        when(reservationCreationLockManager.acquire(request.date())).thenThrow(
+                new CustomException(
+                        ErrorCode.RESERVATION_REQUEST_IN_PROGRESS,
+                        "Another reservation request for the same date is already being processed."
+                )
+        );
+
+        assertThatThrownBy(() -> reservationService.createReservation(request))
+                .isInstanceOf(CustomException.class)
+                .extracting(exception -> ((CustomException) exception).getErrorCode())
+                .isEqualTo(ErrorCode.RESERVATION_REQUEST_IN_PROGRESS);
+
+        verify(reservationRepository, never()).existsOverlappingReservation(
+                any(LocalDate.class),
+                any(LocalTime.class),
+                any(LocalTime.class),
+                anySet()
+        );
+        verify(reservationRepository, never()).save(any(Reservation.class));
     }
 
     private ReservedTimeProjection reservedTimeProjection(Long reservationId, LocalTime startTime, LocalTime endTime) {

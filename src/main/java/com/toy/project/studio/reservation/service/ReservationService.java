@@ -16,6 +16,8 @@ import com.toy.project.studio.reservation.dto.response.ReservationCreateResponse
 import com.toy.project.studio.reservation.dto.response.ReservedTimeResponse;
 import com.toy.project.studio.reservation.dto.response.ReservationSettingResponse;
 import com.toy.project.studio.reservation.entity.Reservation;
+import com.toy.project.studio.reservation.enumeration.ReservationStatus;
+import com.toy.project.studio.reservation.enumeration.VisitPath;
 import com.toy.project.studio.reservation.repository.ReservationRepository;
 import com.toy.project.studio.setting.entity.ShootingType;
 import com.toy.project.studio.setting.repository.ShootingTypeRepository;
@@ -32,10 +34,14 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class ReservationService {
 
+    // 취소된 예약은 같은 시간대 신청을 막을 필요가 없어서 제외한다.
+    private static final Set<ReservationStatus> BLOCKING_STATUSES = Set.of(ReservationStatus.CONFIRMED);
+
     private final SettingService settingService;
     private final ReservationRepository reservationRepository;
     private final ShootingTypeRepository shootingTypeRepository;
     private final TermsRepository termsRepository;
+    private final ReservationCreationLockManager reservationCreationLockManager;
     private final Clock clock;
 
     public ReservationSettingResponse getReservationSetting() {
@@ -58,19 +64,24 @@ public class ReservationService {
         ShootingType shootingType = shootingTypeRepository.findActiveByCode(request.type().trim())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_VALUE, "Shooting type not found."));
 
-        Reservation reservation = reservationRepository.save(Reservation.builder()
-                .shootingType(shootingType)
-                .date(request.date())
-                .startTime(request.startTime())
-                .endTime(request.endTime())
-                .headCount(request.headCount())
-                .name(normalizeRequiredText(request.name()))
-                .phone(normalizeRequiredText(request.phone()))
-                .visitPath(normalizeOptionalText(request.visitPath()))
-                .requestMessage(normalizeOptionalText(request.requestMessage()))
-                .build());
+        // 락을 먼저 잡고 중복 시간 검사를 해야 동시에 들어온 요청이 함께 통과하지 않는다.
+        try (ReservationCreationLockManager.ReservationLock ignored = reservationCreationLockManager.acquire(request.date())) {
+            validateReservationAvailability(request.date(), request.startTime(), request.endTime());
 
-        return ReservationCreateResponse.from(reservation);
+            Reservation reservation = reservationRepository.save(Reservation.builder()
+                    .shootingType(shootingType)
+                    .date(request.date())
+                    .startTime(request.startTime())
+                    .endTime(request.endTime())
+                    .headCount(request.headCount())
+                    .name(normalizeRequiredText(request.name()))
+                    .phone(normalizeRequiredText(request.phone()))
+                    .visitPath(normalizeVisitPath(request.visitPath()))
+                    .requestMessage(normalizeOptionalText(request.requestMessage()))
+                    .build());
+
+            return ReservationCreateResponse.from(reservation);
+        }
     }
 
     public List<ReservedTimeResponse> getReservationsByDate(LocalDate date) {
@@ -84,6 +95,23 @@ public class ReservationService {
     private void validateReservationTime(LocalTime startTime, LocalTime endTime) {
         if (!endTime.isAfter(startTime)) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "endTime must be after startTime.");
+        }
+    }
+
+    private void validateReservationAvailability(LocalDate date, LocalTime startTime, LocalTime endTime) {
+        // 시작/종료가 살짝이라도 겹치면 동일 시간대로 본다.
+        boolean overlaps = reservationRepository.existsOverlappingReservation(
+                date,
+                startTime,
+                endTime,
+                BLOCKING_STATUSES
+        );
+
+        if (overlaps) {
+            throw new CustomException(
+                    ErrorCode.RESERVATION_TIME_CONFLICT,
+                    "Reservation time overlaps with an existing reservation."
+            );
         }
     }
 
@@ -115,5 +143,9 @@ public class ReservationService {
 
         String normalized = value.trim();
         return normalized.isEmpty() ? null : normalized;
+    }
+
+    private VisitPath normalizeVisitPath(VisitPath visitPath) {
+        return visitPath;
     }
 }

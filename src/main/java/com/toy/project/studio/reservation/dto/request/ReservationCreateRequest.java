@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.toy.project.studio.reservation.enumeration.VisitPath;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -34,8 +35,7 @@ public record ReservationCreateRequest(
         @NotBlank(message = "phone is required.")
         @Size(max = 20, message = "phone must be 20 characters or fewer.")
         String phone,
-        @Size(max = 50, message = "visitPath must be 50 characters or fewer.")
-        String visitPath,
+        VisitPath visitPath,
         String requestMessage,
         @NotEmpty(message = "agreedTerms is required.")
         List<Long> agreedTerms

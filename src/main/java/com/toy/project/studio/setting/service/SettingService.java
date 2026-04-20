@@ -45,6 +45,7 @@ public class SettingService {
     public List<LocalDate> getClosedDays(LocalDate startDate, LocalDate endDate) {
         validateDateRange(startDate, endDate);
 
+        // 휴일
         return closedDayRepository.findAllActiveByDateRange(
                         startDate,
                         endDate,

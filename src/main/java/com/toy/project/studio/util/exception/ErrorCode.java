@@ -20,6 +20,8 @@ public enum ErrorCode {
     REFRESH_TOKEN_REUSE_DETECTED(HttpStatus.UNAUTHORIZED, "AUTH-011", "이미 회전된 refresh token 재사용이 감지되었습니다. 다시 로그인해주세요."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH-012", "접근 권한이 없습니다."),
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ-001", "FAQ를 찾을 수 없습니다."),
+    RESERVATION_TIME_CONFLICT(HttpStatus.CONFLICT, "RESERVATION-001", "Reservation time overlaps with an existing reservation."),
+    RESERVATION_REQUEST_IN_PROGRESS(HttpStatus.CONFLICT, "RESERVATION-002", "Another reservation request for the same date is already being processed."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON-003", "서버 오류입니다.");
 
     private final HttpStatus status;

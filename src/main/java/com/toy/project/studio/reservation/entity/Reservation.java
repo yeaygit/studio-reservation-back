@@ -2,6 +2,7 @@ package com.toy.project.studio.reservation.entity;
 
 import com.toy.project.studio.config.jpa.BaseEntity;
 import com.toy.project.studio.reservation.enumeration.ReservationStatus;
+import com.toy.project.studio.reservation.enumeration.VisitPath;
 import com.toy.project.studio.setting.entity.ShootingType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -47,8 +48,9 @@ public class Reservation extends BaseEntity {
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
-    @Column(name = "visit_path", length = 50)
-    private String visitPath;
+    @Column(name = "visit_path", length = 20)
+    @Enumerated(EnumType.STRING)
+    private VisitPath visitPath;
 
     @Column(name = "request_message")
     private String requestMessage;
